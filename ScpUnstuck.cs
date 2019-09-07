@@ -22,7 +22,7 @@ namespace ArithFeather.ScpUnstuck
 		description = "",
 		id = "ArithFeather.ScpUnstuck",
 		configPrefix = "afsu",
-		version = "1.0",
+		version = "1.1",
 		SmodMajor = 3,
 		SmodMinor = 4,
 		SmodRevision = 0
@@ -66,13 +66,27 @@ namespace ArithFeather.ScpUnstuck
 			{
 				var r = rooms[i];
 
+				var check079 = r.Name == "079";
+				var check106 = r.Name == "106";
+
 				for (var j = 0; j < playerPointCount; j++)
 				{
 					var p = doorData[j];
+					var roomType = p.RoomType;
+					var nameToCheck = p.RoomType;
 
-					if (p.RoomType == r.Name && p.ZoneType == r.Zone)
+					if (check079 && nameToCheck.StartsWith("079"))
 					{
-						LoadedDoorData.Add(p.RoomType, new PlayerSpawnPoint(p.RoomType, p.ZoneType,
+						nameToCheck = "079";
+					}
+					else if (check106 && nameToCheck.StartsWith("106"))
+					{
+						nameToCheck = "106";
+					}
+
+					if (nameToCheck == r.Name && p.ZoneType == r.Zone)
+					{
+						LoadedDoorData.Add(roomType, new PlayerSpawnPoint(p.RoomType, p.ZoneType,
 							Tools.Vec3ToVec(r.Transform.TransformPoint(Tools.VecToVec3(p.Position))) + new Vector(0, 0.3f, 0),
 							Tools.Vec3ToVec(r.Transform.TransformDirection(Tools.VecToVec3(p.Rotation)))));
 					}
@@ -83,23 +97,30 @@ namespace ArithFeather.ScpUnstuck
 		public void OnDoorAccess(PlayerDoorAccessEvent ev)
 		{
 			// If door closed and access denied and they are an SCP and they aren't already trying to escape.
-			if (!ev.Door.Open && !ev.Allow && ev.Player.TeamRole.Team == Smod2.API.Team.SCP && ev.Player.TeamRole.Role != Role.SCP_079 && !ScpTryingToEscape.ContainsKey(ev.Door.Name))
+			if (!ev.Door.Open && !ev.Allow && ev.Player.TeamRole.Team == Smod2.API.Team.SCP && ev.Player.TeamRole.Role != Role.SCP_079 && ev.Player.TeamRole.Role != Role.SCP_106 && !ScpTryingToEscape.ContainsKey(ev.Door.Name))
 			{
+				var roomName = string.Empty;
+				if (ev.Door.Name.StartsWith("079") || ev.Door.Name.StartsWith("106"))
+				{
+					roomName = ev.Door.Name;
+				}
+
 				var scpPos = ev.Player.GetPosition().VecToVec3();
-				var room = Tools.FindRoomAtPoint(scpPos);
+
+				if (string.IsNullOrEmpty(roomName))
+				{
+					roomName = Tools.FindRoomAtPoint(scpPos).Name;
+				}
+
 				bool playerIsInRoom = false;
 
-				if (LoadedDoorData.TryGetValue(room.Name, out PlayerSpawnPoint point))
+				if (LoadedDoorData.TryGetValue(roomName, out PlayerSpawnPoint point))
 				{
 					var roomCheckPos = point.Position.VecToVec3();
 					var playerDistanceToRoom = Vector3.Distance(roomCheckPos, scpPos);
 					var doorDistanceToRoom = Vector3.Distance(roomCheckPos, ev.Door.Position.VecToVec3());
 
 					playerIsInRoom = playerDistanceToRoom < doorDistanceToRoom;
-				}
-				else if (room.Name == "106" || room.Name == "079" || room.Name == "*&*Outside Cams")
-				{
-					playerIsInRoom = true;
 				}
 
 				if (playerIsInRoom)
