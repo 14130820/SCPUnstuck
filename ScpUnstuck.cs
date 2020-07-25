@@ -1,131 +1,104 @@
-﻿using ArithFeather.ArithSpawningKit.RandomPlayerSpawning;
-using ArithFeather.ArithSpawningKit.SpawnPointTools;
-using MEC;
-using Smod2;
-using Smod2.API;
-using Smod2.Attributes;
-using Smod2.Config;
-using Smod2.EventHandlers;
-using Smod2.Events;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using ArithFeather.AriToolKit.PointEditor;
+using Exiled.API.Features;
 using UnityEngine;
 
-namespace ArithFeather.ScpUnstuck
-{
-	[PluginDetails(
-		author = "Arith",
-		name = "SCP Unstuck",
-		description = "",
-		id = "ArithFeather.ScpUnstuck",
-		configPrefix = "afsu",
-		version = "1.1",
-		SmodMajor = 3,
-		SmodMinor = 4,
-		SmodRevision = 0
-		)]
-	public class ScpUnstuck : Plugin, IEventHandlerWaitingForPlayers, IEventHandlerDoorAccess
-	{
-		[ConfigOption] private readonly bool disablePlugin = false;
-		[ConfigOption] public readonly float timeBeforeDoorOpens = 15;
+namespace ArithFeather.ScpUnstuck {
 
-		public override void OnDisable() => Info("SCP Unstuck Disabled");
-		public override void OnEnable() => Info("SCP Unstuck Enabled");
+	public class ScpUnstuck : Plugin<Config> {
 
-		public override void Register() => AddEventHandlers(this);
+		public override void OnEnabled() {
+			base.OnEnabled();
+			Exiled.Events.Handlers.Player.InteractingDoor += Player_InteractingDoor;
+			Exiled.Events.Handlers.Server.WaitingForPlayers += Server_WaitingForPlayers;
+		}
 
-		private List<SpawnPoint> doorData;
+		public override void OnDisabled() {
+			Exiled.Events.Handlers.Player.InteractingDoor -= Player_InteractingDoor;
+			Exiled.Events.Handlers.Server.WaitingForPlayers -= Server_WaitingForPlayers;
+			base.OnDisabled();
+		}
 
-		private Dictionary<string, PlayerSpawnPoint> loadedDoorData;
-		private Dictionary<string, PlayerSpawnPoint> LoadedDoorData => loadedDoorData ?? (loadedDoorData = new Dictionary<string, PlayerSpawnPoint>());
+		public override string Author => "Arith";
+		public override Version Version => new Version("2.0");
 
-		private Dictionary<string, ScpStuckInRoom> scpTryingToEscape;
-		public Dictionary<string, ScpStuckInRoom> ScpTryingToEscape => scpTryingToEscape ?? (scpTryingToEscape = new Dictionary<string, ScpStuckInRoom>());
+		private List<SpawnPoint> _doorData;
 
-		public void OnWaitingForPlayers(WaitingForPlayersEvent ev)
-		{
-			if (disablePlugin)
-			{
-				PluginManager.DisablePlugin(this);
-			}
+		private Dictionary<string, SpawnPoint> _loadedDoorData;
+		private Dictionary<string, SpawnPoint> LoadedDoorData => _loadedDoorData ?? (_loadedDoorData = new Dictionary<string, SpawnPoint>());
 
-			doorData = SpawnDataIO.Open("sm_plugins/LockedDoorCheckPoints.txt");
+		private Dictionary<string, ScpStuckInRoom> _scpTryingToEscape;
+		public Dictionary<string, ScpStuckInRoom> ScpTryingToEscape => _scpTryingToEscape ?? (_scpTryingToEscape = new Dictionary<string, ScpStuckInRoom>());
+
+		private void Server_WaitingForPlayers() {
+			_doorData = PointAPI.GetPointList("LockedDoorCheckPoints");
 
 			LoadedDoorData.Clear();
 			ScpTryingToEscape.Clear();
 
-			var playerPointCount = doorData.Count;
-			var rooms = CustomRoomManager.Instance.Rooms;
+			var playerPointCount = _doorData.Count;
+			var rooms = Map.Rooms;
 			var roomCount = rooms.Count;
 
 			// Create player spawn points on map
-			for (var i = 0; i < roomCount; i++)
-			{
+			for (var i = 0; i < roomCount; i++) {
 				var r = rooms[i];
 
 				var check079 = r.Name == "079";
 				var check106 = r.Name == "106";
 
-				for (var j = 0; j < playerPointCount; j++)
-				{
-					var p = doorData[j];
+				for (var j = 0; j < playerPointCount; j++) {
+					var p = _doorData[j];
 					var roomType = p.RoomType;
 					var nameToCheck = p.RoomType;
 
-					if (check079 && nameToCheck.StartsWith("079"))
-					{
+					if (check079 && nameToCheck.StartsWith("079")) {
 						nameToCheck = "079";
-					}
-					else if (check106 && nameToCheck.StartsWith("106"))
-					{
+					} else if (check106 && nameToCheck.StartsWith("106")) {
 						nameToCheck = "106";
 					}
 
-					if (nameToCheck == r.Name && p.ZoneType == r.Zone)
-					{
-						LoadedDoorData.Add(roomType, new PlayerSpawnPoint(p.RoomType, p.ZoneType,
-							Tools.Vec3ToVec(r.Transform.TransformPoint(Tools.VecToVec3(p.Position))) + new Vector(0, 0.3f, 0),
-							Tools.Vec3ToVec(r.Transform.TransformDirection(Tools.VecToVec3(p.Rotation)))));
+					if (nameToCheck == r.Name && p.ZoneType == r.Zone) {
+						LoadedDoorData.Add(roomType, new SpawnPoint(p.RoomType, p.ZoneType,
+							r.Transform.TransformPoint(p.Position) + new Vector3(0, 0.3f, 0),
+							r.Transform.TransformDirection(p.Rotation)));
 					}
 				}
 			}
 		}
 
-		public void OnDoorAccess(PlayerDoorAccessEvent ev)
-		{
+		private void Player_InteractingDoor(Exiled.Events.EventArgs.InteractingDoorEventArgs ev) {
+			var door = ev.Door;
+			var doorName = door.DoorName;
+			var player = ev.Player;
 			// If door closed and access denied and they are an SCP and they aren't already trying to escape.
-			if (!ev.Door.Open && !ev.Allow && ev.Player.TeamRole.Team == Smod2.API.Team.SCP && ev.Player.TeamRole.Role != Role.SCP_079 && ev.Player.TeamRole.Role != Role.SCP_106 && !ScpTryingToEscape.ContainsKey(ev.Door.Name))
-			{
+			if (!door.isOpen && !ev.IsAllowed && player.Team == Team.SCP && player.Role != RoleType.Scp079 && player.Role != RoleType.Scp106 && !ScpTryingToEscape.ContainsKey(doorName)) {
 				var roomName = string.Empty;
-				if (ev.Door.Name.StartsWith("079") || ev.Door.Name.StartsWith("106"))
-				{
-					roomName = ev.Door.Name;
+				if (doorName.StartsWith("079") || doorName.StartsWith("106")) {
+					roomName = doorName;
 				}
 
-				var scpPos = ev.Player.GetPosition().VecToVec3();
+				var scpPos = ev.Player.Position;
 
 				if (string.IsNullOrEmpty(roomName))
 				{
-					roomName = Tools.FindRoomAtPoint(scpPos).Name;
+					roomName = player.CurrentRoom.Name;
 				}
 
 				bool playerIsInRoom = false;
 
-				if (LoadedDoorData.TryGetValue(roomName, out PlayerSpawnPoint point))
+				if (LoadedDoorData.TryGetValue(roomName, out SpawnPoint point))
 				{
-					var roomCheckPos = point.Position.VecToVec3();
+					var roomCheckPos = point.Position;
 					var playerDistanceToRoom = Vector3.Distance(roomCheckPos, scpPos);
-					var doorDistanceToRoom = Vector3.Distance(roomCheckPos, ev.Door.Position.VecToVec3());
+					var doorDistanceToRoom = Vector3.Distance(roomCheckPos, door.transform.position);
 
 					playerIsInRoom = playerDistanceToRoom < doorDistanceToRoom;
 				}
 
-				if (playerIsInRoom)
-				{
-					ScpTryingToEscape.Add(ev.Door.Name, new ScpStuckInRoom(ev.Player, ev.Door.GetComponent() as Door, this));
+				if (playerIsInRoom) {
+					ScpTryingToEscape.Add(doorName, new ScpStuckInRoom(ev.Player, door, this));
 				}
 			}
 		}
