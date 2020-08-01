@@ -17,10 +17,10 @@ namespace ArithFeather.PlayerUnstuck
 			this._player = player;
 			this._plugin = plugin;
 			this._door = door;
-			Coroutine = Timing.RunCoroutine(_ScpStuck());
+			Coroutine = Timing.RunCoroutine(_PlayerStuck());
 		}
 
-		private IEnumerator<float> _ScpStuck()
+		private IEnumerator<float> _PlayerStuck()
 		{
 			var go = _player.GameObject;
 
@@ -33,7 +33,7 @@ namespace ArithFeather.PlayerUnstuck
 				var comp = go.GetComponent<NicknameSync>();
 				if (_door.NetworkisOpen || comp == null)
 				{
-					_plugin.ScpTryingToEscape.Remove(_door.name);
+					_plugin.ScpTryingToEscape.Remove(_door.DoorName);
 					yield break;
 				}
 				else if (timer <= 5)
@@ -45,18 +45,25 @@ namespace ArithFeather.PlayerUnstuck
 				timer--;
 			}
 
-			_plugin.ScpTryingToEscape.Remove(_door.name);
+			_plugin.ScpTryingToEscape.Remove(_door.DoorName);
 			_door.NetworkisOpen = true;
 		}
 
 		#region LazyPool
 
-		private const int CacheSize = 50;
-		private static readonly StuckInRoom[] CachedClasses = new StuckInRoom[CacheSize];
+		private static readonly StuckInRoom[] CachedClasses = new StuckInRoom[Config.CacheSize];
+
+		public static void InitializePool()
+		{
+			for (int i = 0; i < Config.CacheSize; i++)
+			{
+				CachedClasses[i] = new StuckInRoom();
+			}
+		}
 
 		public static StuckInRoom SetPlayerStuck(Player player, Door door, PlayerUnstuck plugin)
 		{
-			for (int i = 0; i < CacheSize; i++)
+			for (int i = 0; i < Config.CacheSize; i++)
 			{
 				var c = CachedClasses[i];
 

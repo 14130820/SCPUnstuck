@@ -8,6 +8,10 @@ namespace ArithFeather.PlayerUnstuck {
 
 	public class PlayerUnstuck : Plugin<Config> {
 
+		public PlayerUnstuck() {
+			StuckInRoom.InitializePool();
+		}
+
 		public override void OnEnabled() {
 			base.OnEnabled();
 			Exiled.Events.Handlers.Player.InteractingDoor += Player_InteractingDoor;
@@ -21,15 +25,14 @@ namespace ArithFeather.PlayerUnstuck {
 		}
 
 		public override string Author => "Arith";
-		public override Version Version => new Version("2.0");
+		public override Version Version => new Version("2.01");
 
 		private List<SpawnPoint> _doorData;
 
 		private Dictionary<string, SpawnPoint> _loadedDoorData;
 		private Dictionary<string, SpawnPoint> LoadedDoorData => _loadedDoorData ?? (_loadedDoorData = new Dictionary<string, SpawnPoint>());
 
-		private Dictionary<string, StuckInRoom> _scpTryingToEscape;
-		public Dictionary<string, StuckInRoom> ScpTryingToEscape => _scpTryingToEscape ?? (_scpTryingToEscape = new Dictionary<string, StuckInRoom>());
+		public Dictionary<string, StuckInRoom> ScpTryingToEscape = new Dictionary<string, StuckInRoom>(Config.CacheSize);
 
 		private void Server_WaitingForPlayers() {
 			_doorData = PointAPI.GetPointList("LockedDoorCheckPoints");
@@ -85,33 +88,30 @@ namespace ArithFeather.PlayerUnstuck {
 			var player = ev.Player;
 
 			// If door closed and access denied and they are an SCP and they aren't already trying to escape.
-			if (!door.isOpen && !ev.IsAllowed &&
-				(!Config.SCPOnly || (Config.SCPOnly && player.Team == Team.SCP))
-				&& player.Role != RoleType.Scp079 &&
-				player.Role != RoleType.Scp106 &&
-				!ScpTryingToEscape.ContainsKey(doorName)) {
+			if (door.isOpen || ev.IsAllowed || (Config.SCPOnly && (!Config.SCPOnly || player.Team != Team.SCP)) ||
+				player.Role == RoleType.Scp079 || player.Role == RoleType.Scp106 ||
+				ScpTryingToEscape.ContainsKey(doorName)) return;
 
-				string roomName;
-				if (doorName.StartsWith("079") || doorName.StartsWith("106")) {
-					roomName = doorName;
-				} else {
-					roomName = player.CurrentRoom.Name;
-					AriToolKit.Tools.TryFormatRoomName(ref roomName);
-				}
+			string roomName;
+			if (doorName.StartsWith("079") || doorName.StartsWith("106")) {
+				roomName = doorName;
+			} else {
+				roomName = player.CurrentRoom.Name;
+				AriToolKit.Tools.TryFormatRoomName(ref roomName);
+			}
 
-				bool playerIsInRoom = false;
+			bool playerIsInRoom = false;
 
-				if (LoadedDoorData.TryGetValue(roomName, out SpawnPoint point)) {
-					var roomCheckPos = point.Position;
-					var playerDistanceToRoom = Vector3.Distance(roomCheckPos, player.Position);
-					var doorDistanceToRoom = Vector3.Distance(roomCheckPos, door.transform.position);
+			if (LoadedDoorData.TryGetValue(roomName, out SpawnPoint point)) {
+				var roomCheckPos = point.Position;
+				var playerDistanceToRoom = Vector3.Distance(roomCheckPos, player.Position);
+				var doorDistanceToRoom = Vector3.Distance(roomCheckPos, door.transform.position);
 
-					playerIsInRoom = playerDistanceToRoom < doorDistanceToRoom;
-				}
+				playerIsInRoom = playerDistanceToRoom < doorDistanceToRoom;
+			}
 
-				if (playerIsInRoom) {
-					ScpTryingToEscape.Add(doorName, StuckInRoom.SetPlayerStuck(ev.Player, door, this));
-				}
+			if (playerIsInRoom) {
+				ScpTryingToEscape.Add(doorName, StuckInRoom.SetPlayerStuck(ev.Player, door, this));
 			}
 		}
 	}
