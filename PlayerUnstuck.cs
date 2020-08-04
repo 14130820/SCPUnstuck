@@ -25,7 +25,7 @@ namespace ArithFeather.PlayerUnstuck {
 		}
 
 		public override string Author => "Arith";
-		public override Version Version => new Version("2.01");
+		public override Version Version => new Version("2.02");
 
 		private List<SpawnPoint> _doorData;
 
@@ -57,7 +57,7 @@ namespace ArithFeather.PlayerUnstuck {
 
 		private void FindDataMatchingServerRoom(int playerPointCount, Room serverRoom) {
 			var serverRoomName = serverRoom.Name;
-			AriToolKit.Tools.TryFormatRoomName(ref serverRoomName);
+			AriToolKit.Tools.FormatBacketedName(ref serverRoomName);
 
 			var check079 = serverRoomName == "HCZ_079";
 			var check106 = serverRoomName == "HCZ_106";
@@ -97,7 +97,7 @@ namespace ArithFeather.PlayerUnstuck {
 				roomName = doorName;
 			} else {
 				roomName = player.CurrentRoom.Name;
-				AriToolKit.Tools.TryFormatRoomName(ref roomName);
+				AriToolKit.Tools.FormatBacketedName(ref roomName);
 			}
 
 			bool playerIsInRoom = false;
