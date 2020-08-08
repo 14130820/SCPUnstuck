@@ -44,8 +44,6 @@ namespace ArithFeather.PlayerUnstuck {
 			var doorName = door.DoorName.ToLowerInvariant();
 			var player = ev.Player;
 
-			if (Exiled.Loader.Loader.ShouldDebugBeShown) Debug.Log(doorName);
-
 			// If door closed and access denied and they are an SCP and they aren't already trying to escape.
 			if (door.isOpen || ev.IsAllowed || (Config.SCPOnly && (!Config.SCPOnly || player.Team != Team.SCP)) ||
 				player.Role == RoleType.Scp079 || player.Role == RoleType.Scp106 ||
