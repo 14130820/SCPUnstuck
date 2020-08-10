@@ -34,10 +34,6 @@
     <Reference Include="0Harmony">
       <HintPath>..\..\..\Users\dusts\AppData\Roaming\EXILED\Plugins\dependencies\0Harmony.dll</HintPath>
     </Reference>
-    <Reference Include="AriToolKit, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\AriToolKit\bin\Debug\AriToolKit.dll</HintPath>
-    </Reference>
     <Reference Include="Assembly-CSharp">
       <HintPath>..\server\SCPSL_Data\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
