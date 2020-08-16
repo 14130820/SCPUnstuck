@@ -25,7 +25,7 @@ namespace ArithFeather.PlayerUnstuck {
 		}
 
 		public override string Author => "Arith";
-		public override Version Version => new Version("2.05");
+		public override Version Version => new Version("2.06");
 
 		public Dictionary<string, StuckInRoom>
 			ScpTryingToEscape = new Dictionary<string, StuckInRoom>(Config.CacheSize);
@@ -45,7 +45,7 @@ namespace ArithFeather.PlayerUnstuck {
 				for (int i = 0; i < roomCount; i++) {
 					var room = rooms[i];
 
-					if (room.RoomType == roomType)
+					if (room.Type == roomType)
 						_fixedPoints.Add(doorPoint.Key,
 							new DoorPoint(roomType, room.Transform.TransformPoint(point.Position)));
 
