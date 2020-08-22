@@ -6,22 +6,12 @@ using UnityEngine;
 
 namespace ArithFeather.PlayerUnstuck {
 
-	public class PlayerUnstuck : Plugin<Config> {
+	public class PlayerUnstuck : Plugin<Config>
+	{
+		public static Config Configs;
 
 		public PlayerUnstuck() {
 			StuckInRoom.InitializePool();
-		}
-
-		public override void OnEnabled() {
-			base.OnEnabled();
-			Exiled.Events.Handlers.Player.InteractingDoor += Player_InteractingDoor;
-			Exiled.Events.Handlers.Server.WaitingForPlayers += Server_WaitingForPlayers;
-		}
-
-		public override void OnDisabled() {
-			Exiled.Events.Handlers.Player.InteractingDoor -= Player_InteractingDoor;
-			Exiled.Events.Handlers.Server.WaitingForPlayers -= Server_WaitingForPlayers;
-			base.OnDisabled();
 		}
 
 		public override string Author => "Arith";
@@ -29,6 +19,24 @@ namespace ArithFeather.PlayerUnstuck {
 
 		public Dictionary<string, StuckInRoom>
 			ScpTryingToEscape = new Dictionary<string, StuckInRoom>(Config.CacheSize);
+
+		public override void OnEnabled() {
+			base.OnEnabled();
+			Configs = Config;
+			Exiled.Events.Handlers.Player.InteractingDoor += Player_InteractingDoor;
+			Exiled.Events.Handlers.Server.WaitingForPlayers += Server_WaitingForPlayers;
+			Exiled.Events.Handlers.Server.ReloadedConfigs += ClampWarning;
+			ClampWarning();
+		}
+
+		public override void OnDisabled() {
+			Exiled.Events.Handlers.Player.InteractingDoor -= Player_InteractingDoor;
+			Exiled.Events.Handlers.Server.WaitingForPlayers -= Server_WaitingForPlayers;
+			Exiled.Events.Handlers.Server.ReloadedConfigs -= ClampWarning;
+			base.OnDisabled();
+		}
+
+		private void ClampWarning() => Config.WarnDoorOpeningIn = Mathf.Clamp(Config.WarnDoorOpeningIn, 0, Config.TimeBeforeDoorOpens - 1);
 
 		private void Server_WaitingForPlayers() {
 			ScpTryingToEscape.Clear();

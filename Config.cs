@@ -6,7 +6,9 @@ namespace ArithFeather.PlayerUnstuck {
 
 		public bool IsEnabled { get; set; } = true;
 
-		public float TimeBeforeDoorOpens { get; set; } = 15;
+		public int TimeBeforeDoorOpens { get; set; } = 15;
+
+		public int WarnDoorOpeningIn { get; set; } = 5;
 
 		public bool SCPOnly { get; set; } = false;
 	}

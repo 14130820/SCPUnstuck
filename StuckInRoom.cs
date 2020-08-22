@@ -36,7 +36,7 @@ namespace ArithFeather.PlayerUnstuck
 					_plugin.ScpTryingToEscape.Remove(_door.DoorName);
 					yield break;
 				}
-				else if (timer <= 5)
+				else if (timer <= PlayerUnstuck.Configs.WarnDoorOpeningIn)
 				{
 					_player.Broadcast(1, $"Door will open in {timer}");
 				}
