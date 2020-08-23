@@ -15,7 +15,7 @@ namespace ArithFeather.PlayerUnstuck {
 		}
 
 		public override string Author => "Arith";
-		public override Version Version => new Version("2.06");
+		public override Version Version => new Version("2.08");
 
 		public Dictionary<string, StuckInRoom>
 			ScpTryingToEscape = new Dictionary<string, StuckInRoom>(Config.CacheSize);
