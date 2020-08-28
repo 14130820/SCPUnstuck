@@ -1,6 +1,7 @@
 ﻿using MEC;
 using System.Collections.Generic;
 using Exiled.API.Features;
+using System;
 
 namespace ArithFeather.PlayerUnstuck
 {
@@ -23,8 +24,9 @@ namespace ArithFeather.PlayerUnstuck
 		private IEnumerator<float> _PlayerStuck()
 		{
 			var go = _player.GameObject;
+			var doorName = _door.DoorName.ToLowerInvariant();
 
-			_player.Broadcast(5, $"You got locked in! Door will open in {_plugin.Config.TimeBeforeDoorOpens} seconds");
+			_player.Broadcast(5, PlayerUnstuck.Configs.WarnBroadcast);
 
 			var timer = _plugin.Config.TimeBeforeDoorOpens;
 
@@ -33,19 +35,20 @@ namespace ArithFeather.PlayerUnstuck
 				var comp = go.GetComponent<NicknameSync>();
 				if (_door.NetworkisOpen || comp == null)
 				{
-					_plugin.ScpTryingToEscape.Remove(_door.DoorName);
+					_plugin.ScpTryingToEscape.Remove(doorName);
 					yield break;
 				}
 				else if (timer <= 5)
 				{
-					_player.Broadcast(1, $"Door will open in {timer}");
+					_player.Broadcast(1, string.Format(PlayerUnstuck.Configs.TimerBroadcast, timer.ToString(PlayerUnstuck.CachedCultureInfo.NumberFormat)));
 				}
+
 
 				yield return Timing.WaitForSeconds(1);
 				timer--;
 			}
 
-			_plugin.ScpTryingToEscape.Remove(_door.DoorName);
+			_plugin.ScpTryingToEscape.Remove(doorName);
 			_door.NetworkisOpen = true;
 		}
 

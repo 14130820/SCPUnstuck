@@ -9,5 +9,13 @@ namespace ArithFeather.PlayerUnstuck {
 		public float TimeBeforeDoorOpens { get; set; } = 15;
 
 		public bool SCPOnly { get; set; } = false;
+
+		public string LanguageCultureInfo { get; set; } = "en-US";
+
+		public string WarnBroadcast { get; set; } =
+			"You got locked in! Door will open in {0} seconds";
+
+		public string TimerBroadcast { get; set; } =
+			"Door will open in {0}";
 	}
 }

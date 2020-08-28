@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using Exiled.API.Enums;
 using Exiled.API.Features;
 using UnityEngine;
@@ -8,12 +9,30 @@ namespace ArithFeather.PlayerUnstuck {
 
 	public class PlayerUnstuck : Plugin<Config> {
 
+		public static Config Configs { get; private set; }
+		public static CultureInfo CachedCultureInfo { get; private set; }
+
 		public PlayerUnstuck() {
 			StuckInRoom.InitializePool();
 		}
 
 		public override void OnEnabled() {
 			base.OnEnabled();
+			Configs = Config;
+
+			try
+			{
+				CachedCultureInfo = CultureInfo.GetCultureInfo(Config.LanguageCultureInfo);
+			}
+			catch
+			{
+				Log.Error("Wrong Culture Info. Defaulting to local language.");
+
+				CachedCultureInfo = CultureInfo.DefaultThreadCurrentCulture;
+			}
+
+			Config.WarnBroadcast = string.Format(Config.WarnBroadcast, Config.TimeBeforeDoorOpens.ToString(CachedCultureInfo.NumberFormat));
+
 			Exiled.Events.Handlers.Player.InteractingDoor += Player_InteractingDoor;
 			Exiled.Events.Handlers.Server.WaitingForPlayers += Server_WaitingForPlayers;
 		}
@@ -25,7 +44,7 @@ namespace ArithFeather.PlayerUnstuck {
 		}
 
 		public override string Author => "Arith";
-		public override Version Version => new Version("2.06");
+		public override Version Version => new Version("2.09");
 
 		public Dictionary<string, StuckInRoom>
 			ScpTryingToEscape = new Dictionary<string, StuckInRoom>(Config.CacheSize);
