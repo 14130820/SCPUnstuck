@@ -7,7 +7,9 @@ using UnityEngine;
 
 namespace ArithFeather.PlayerUnstuck {
 
-	public class PlayerUnstuck : Plugin<Config> {
+	public class PlayerUnstuck : Plugin<Config>
+	{
+		public static Config Configs;
 
 		public static Config Configs { get; private set; }
 		public static CultureInfo CachedCultureInfo { get; private set; }
@@ -16,9 +18,16 @@ namespace ArithFeather.PlayerUnstuck {
 			StuckInRoom.InitializePool();
 		}
 
+		public override string Author => "Arith";
+		public override Version Version => new Version("2.08");
+
+		public Dictionary<string, StuckInRoom>
+			ScpTryingToEscape = new Dictionary<string, StuckInRoom>(Config.CacheSize);
+
 		public override void OnEnabled() {
 			base.OnEnabled();
 			Configs = Config;
+<<<<<<< HEAD
 
 			try
 			{
@@ -33,21 +42,30 @@ namespace ArithFeather.PlayerUnstuck {
 
 			Config.WarnBroadcast = string.Format(Config.WarnBroadcast, Config.TimeBeforeDoorOpens.ToString(CachedCultureInfo.NumberFormat));
 
+=======
+>>>>>>> feb057c045e340826781d9737a8c88106ae7f259
 			Exiled.Events.Handlers.Player.InteractingDoor += Player_InteractingDoor;
 			Exiled.Events.Handlers.Server.WaitingForPlayers += Server_WaitingForPlayers;
+			Exiled.Events.Handlers.Server.ReloadedConfigs += ClampWarning;
+			ClampWarning();
 		}
 
 		public override void OnDisabled() {
 			Exiled.Events.Handlers.Player.InteractingDoor -= Player_InteractingDoor;
 			Exiled.Events.Handlers.Server.WaitingForPlayers -= Server_WaitingForPlayers;
+			Exiled.Events.Handlers.Server.ReloadedConfigs -= ClampWarning;
 			base.OnDisabled();
 		}
 
+<<<<<<< HEAD
 		public override string Author => "Arith";
 		public override Version Version => new Version("2.09");
 
 		public Dictionary<string, StuckInRoom>
 			ScpTryingToEscape = new Dictionary<string, StuckInRoom>(Config.CacheSize);
+=======
+		private void ClampWarning() => Config.WarnDoorOpeningIn = Mathf.Clamp(Config.WarnDoorOpeningIn, 0, Config.TimeBeforeDoorOpens - 1);
+>>>>>>> feb057c045e340826781d9737a8c88106ae7f259
 
 		private void Server_WaitingForPlayers() {
 			ScpTryingToEscape.Clear();
