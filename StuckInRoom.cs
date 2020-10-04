@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Exiled.API.Features;
 using System;
+using Exiled.API.Extensions;
 
 namespace ArithFeather.PlayerUnstuck
 {
@@ -35,7 +36,7 @@ namespace ArithFeather.PlayerUnstuck
 				var comp = go.GetComponent<NicknameSync>();
 				if (_door.NetworkisOpen || comp == null)
 				{
-					_plugin.ScpTryingToEscape.Remove(doorName);
+					_plugin.ScpTryingToEscape.Remove(_door.Type());
 					yield break;
 				}
 				else if (timer <= PlayerUnstuck.Configs.WarnDoorOpeningIn)
@@ -48,7 +49,7 @@ namespace ArithFeather.PlayerUnstuck
 				timer--;
 			}
 
-			_plugin.ScpTryingToEscape.Remove(doorName);
+			_plugin.ScpTryingToEscape.Remove(_door.Type());
 			_door.NetworkisOpen = true;
 		}
 
