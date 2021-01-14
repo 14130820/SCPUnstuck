@@ -8,7 +8,6 @@ using UnityEngine;
 
 namespace ArithFeather.PlayerUnstuck
 {
-
 	public class PlayerUnstuck : Plugin<Config>
 	{
 		public static Config Configs { get; private set; }
@@ -20,7 +19,7 @@ namespace ArithFeather.PlayerUnstuck
 		}
 
 		public override string Author => "Arith";
-		public override Version Version => new Version("2.10");
+		public override Version Version => new Version("2.11");
 
 		public Dictionary<DoorType, StuckInRoom>
 			ScpTryingToEscape = new Dictionary<DoorType, StuckInRoom>(Config.CacheSize);
@@ -97,7 +96,7 @@ namespace ArithFeather.PlayerUnstuck
 			var player = ev.Player;
 
 			// If door closed and access denied and they are an SCP and they aren't already trying to escape.
-			if (door.isOpen || ev.IsAllowed || (Config.SCPOnly && (!Config.SCPOnly || player.Team != Team.SCP)) ||
+			if (door.IsConsideredOpen() || ev.IsAllowed || (Config.SCPOnly && (!Config.SCPOnly || player.Team != Team.SCP)) ||
 				player.Role == RoleType.Scp079 || player.Role == RoleType.Scp106 ||
 				ScpTryingToEscape.ContainsKey(doorType)) return;
 

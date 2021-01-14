@@ -71,7 +71,7 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Assembly-CSharp" HintPath="$(SCPSL)\Assembly-CSharp.dll" Private="false" />
+    <Reference Include="Assembly-CSharp" HintPath="$(SCPSL)\Assembly-CSharp-Publicized.dll" Private="false" />
     <Reference Include="Assembly-CSharp-firstpass" HintPath="$(SCPSL)\Assembly-CSharp-firstpass.dll" Private="false" />
     <Reference Include="DissonanceVoip" HintPath="$(SCPSL)\DissonanceVoip.dll" Private="false" />
     <Reference Include="Exiled.API, Version=2.1.0.0, Culture=neutral, processorArchitecture=AMD64">

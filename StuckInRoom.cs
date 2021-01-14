@@ -1,20 +1,21 @@
-﻿using MEC;
+﻿using System;
+using MEC;
 using System.Collections.Generic;
 using Exiled.API.Features;
-using System;
 using Exiled.API.Extensions;
+using Interactables.Interobjects.DoorUtils;
 
 namespace ArithFeather.PlayerUnstuck
 {
 	public class StuckInRoom
 	{
 		private Player _player;
-		private Door _door;
+		private DoorVariant _door;
 		private PlayerUnstuck _plugin;
 
 		public CoroutineHandle Coroutine;
 
-		public void Initialize(Player player, Door door, PlayerUnstuck plugin)
+		public void Initialize(Player player, DoorVariant door, PlayerUnstuck plugin)
 		{
 			this._player = player;
 			this._plugin = plugin;
@@ -25,7 +26,7 @@ namespace ArithFeather.PlayerUnstuck
 		private IEnumerator<float> _PlayerStuck()
 		{
 			var go = _player.GameObject;
-			var doorName = _door.DoorName.ToLowerInvariant();
+			var doorType = _door.Type();
 
 			_player.Broadcast(5, PlayerUnstuck.Configs.WarnBroadcast);
 
@@ -34,7 +35,7 @@ namespace ArithFeather.PlayerUnstuck
 			while (timer > 0)
 			{
 				var comp = go.GetComponent<NicknameSync>();
-				if (_door.NetworkisOpen || comp == null)
+				if (_door.IsConsideredOpen() || comp == null)
 				{
 					_plugin.ScpTryingToEscape.Remove(_door.Type());
 					yield break;
@@ -50,7 +51,7 @@ namespace ArithFeather.PlayerUnstuck
 			}
 
 			_plugin.ScpTryingToEscape.Remove(_door.Type());
-			_door.NetworkisOpen = true;
+			_door.NetworkTargetState = true;
 		}
 
 		#region LazyPool
@@ -65,7 +66,7 @@ namespace ArithFeather.PlayerUnstuck
 			}
 		}
 
-		public static StuckInRoom SetPlayerStuck(Player player, Door door, PlayerUnstuck plugin)
+		public static StuckInRoom SetPlayerStuck(Player player, DoorVariant door, PlayerUnstuck plugin)
 		{
 			for (int i = 0; i < Config.CacheSize; i++)
 			{
