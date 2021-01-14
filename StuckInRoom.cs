@@ -26,7 +26,6 @@ namespace ArithFeather.PlayerUnstuck
 		private IEnumerator<float> _PlayerStuck()
 		{
 			var go = _player.GameObject;
-			var doorType = _door.Type();
 
 			_player.Broadcast(5, PlayerUnstuck.Configs.WarnBroadcast);
 
