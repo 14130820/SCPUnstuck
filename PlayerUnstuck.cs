@@ -19,14 +19,14 @@ namespace ArithFeather.PlayerUnstuck
 		}
 
 		public override string Author => "Arith";
-		public override Version Version => new Version("2.11");
+		public override Version Version => new Version(2, 11, 1);
+		public override Version RequiredExiledVersion => new Version(2, 1, 3);
 
 		public Dictionary<DoorType, StuckInRoom>
 			ScpTryingToEscape = new Dictionary<DoorType, StuckInRoom>(Config.CacheSize);
 
 		public override void OnEnabled()
 		{
-			base.OnEnabled();
 			Configs = Config;
 
 			ClampWarning();
@@ -34,6 +34,8 @@ namespace ArithFeather.PlayerUnstuck
 			Exiled.Events.Handlers.Player.InteractingDoor += Player_InteractingDoor;
 			Exiled.Events.Handlers.Server.WaitingForPlayers += Server_WaitingForPlayers;
 			Exiled.Events.Handlers.Server.ReloadedConfigs += ClampWarning;
+
+			base.OnEnabled();
 		}
 
 		public override void OnDisabled()
@@ -41,6 +43,7 @@ namespace ArithFeather.PlayerUnstuck
 			Exiled.Events.Handlers.Player.InteractingDoor -= Player_InteractingDoor;
 			Exiled.Events.Handlers.Server.WaitingForPlayers -= Server_WaitingForPlayers;
 			Exiled.Events.Handlers.Server.ReloadedConfigs -= ClampWarning;
+
 			base.OnDisabled();
 		}
 
